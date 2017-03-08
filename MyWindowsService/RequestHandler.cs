@@ -1,21 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.ServiceModel;
 using System.Threading.Tasks;
 using IKriv.Sample.CallWinService.Interfaces;
 
 namespace IKriv.Sample.CallWinService.WindowsService
 {
-    [ServiceBehavior(
-        ConcurrencyMode = ConcurrencyMode.Multiple,
-        InstanceContextMode = InstanceContextMode.Single,
-        IncludeExceptionDetailInFaults=true)]
-    public class RequestHandler : IRequestHandler
+    public class RequestHandler : MarshalByRefObject, IRequestHandler
     {
         private readonly Dictionary<long, AcceptedRequest> _requests = new Dictionary<long, AcceptedRequest>();
         private long _lastRequestId; // = 0
         private long _lastRevision; // = 0
+
+        public override object InitializeLifetimeService()
+        {
+            return null; // do not timeout
+        }
 
         public AcceptedRequest CreateRequest(Request rawRequest)
         {

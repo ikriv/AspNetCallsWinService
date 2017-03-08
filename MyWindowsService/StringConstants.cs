@@ -2,8 +2,8 @@
 {
     internal class StringConstants
     {
-        public const string ServiceName = "IKrivSampleServiceWcf";
-        public const string ServiceDisplayName = "IKriv Sample Service (WCF)";
-        public const string ServiceDescription = "Sample windows service for AspNetCallsWebService project that uses WCF";
+        public const string ServiceName = "IKrivSampleServiceRem";
+        public const string ServiceDisplayName = "IKriv Sample Service (Remoting)";
+        public const string ServiceDescription = "Sample windows service for AspNetCallsWebService project that uses Remoting";
     }
 }

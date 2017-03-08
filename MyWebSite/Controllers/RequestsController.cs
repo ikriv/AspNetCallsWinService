@@ -30,7 +30,7 @@ namespace IKriv.Sample.CallWinService.WebSite.Controllers
 
         private static IRequestHandler GetHandler()
         {
-            return new WcfWrapper().CreateClient<IRequestHandler>(ServiceConstants.Url);
+            return new RemotingWrapper().CreateClient<IRequestHandler>(ServiceConstants.Url);
         }
     }
 }

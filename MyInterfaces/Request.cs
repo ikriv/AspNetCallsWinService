@@ -2,12 +2,14 @@
 
 namespace IKriv.Sample.CallWinService.Interfaces
 {
+    [Serializable]
     public class Request
     {
         public string Input { get; set; }
         public int RequestedProcessingTimeMs { get; set; }
     }
 
+    [Serializable]
     public class AcceptedRequest : Request
     {
         public long Id { get; set; }
@@ -20,6 +22,7 @@ namespace IKriv.Sample.CallWinService.Interfaces
         public int? ActualProcessingTimeMs { get; set; }
     }
 
+    [Serializable]
     public class RequestList
     {
         public long Revision { get; set; }

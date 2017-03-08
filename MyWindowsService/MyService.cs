@@ -26,7 +26,7 @@ namespace IKriv.Sample.CallWinService.WindowsService
                 return;
             }
             IRequestHandler handler = new RequestHandler();
-            _wcfHost = new WcfWrapper().CreateServer(handler, ServiceConstants.Url);
+            _wcfHost = new RemotingWrapper().CreateServer(handler, ServiceConstants.Url);
         }
 
         public void Stop()

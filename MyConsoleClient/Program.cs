@@ -40,7 +40,7 @@ namespace IKriv.Sample.CallWinService.ConsoleClient
 
         private void ProcessCommand(string command)
         {
-            _handler = new WcfWrapper().CreateClient<IRequestHandler>(ServiceConstants.Url);
+            _handler = new RemotingWrapper().CreateClient<IRequestHandler>(ServiceConstants.Url);
 
             switch (command)
             {
