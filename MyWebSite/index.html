@@ -1,0 +1,245 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Call Web Service</title>
+    <meta charset="utf-8" />
+    <script
+      src="https://code.jquery.com/jquery-3.1.1.min.js"
+      integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+      crossorigin="anonymous"></script>
+	  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.17.1/moment.min.js"></script>
+	 <style>
+.request-input-area {
+	margin-bottom: 10px;
+}
+
+.request-input-area .request-field {
+	margin-right: 10px;
+}
+
+.request-input-area .new-request-button {
+	padding: 3px;
+}
+
+.request-field .numeric {
+	text-align: right;
+	padding-right: 3px;
+	margin-right: 3px;
+}
+
+#requests-table { 
+	display: none 
+}
+
+#requests-table, #requests-table tr, #requests-table th, #requests-table td {
+	border-collapse: collapse;
+	border: 1px solid darkgray;
+}
+
+#requests-table th, #requests-table td {
+	padding: 10px;
+	margin: 0;
+}
+
+#requests-table thead {
+	background-color: #EEE;
+}
+
+.completed {
+	background-color: lightgreen;
+}
+
+.pending {
+	background-color: yellow;
+}
+
+#requests-error { display: none; color: red }
+	 </style>
+</head>
+<body>
+<h1>ASP.NET Calls Web Service Demo</h1>  
+<div class="request-input-area">
+	<span class="request-field">
+		Input: <input id="request-input" type="text" size="40" value="Some input here"/> 
+	</span>
+	<span class="request-field">
+		Delay: <input id="request-delay" class="numeric" type="text" size="7" value="10000"/>ms
+	</span>
+	<input class="new-request-button" type="button" value="New Request" onclick="onNewRequest()"/>
+</div>
+<div class="requests-list">
+	<div id="requests-empty">Loading...</div>
+	<div id="requests-error"></div>
+	<table id="requests-table">
+		<thead>
+			<tr><th>Request Time</th><th>Status</th><th>Input</th><th>Output</th><th>Time</th><th>Actual Time</th><tr>
+		</thead>
+		<tbody></tbody>
+	</table>
+</div>    
+<script>
+function RequestTable() {
+    var tableRows = [];
+	var table = $("#requests-table");
+	var emptyMessage = $("#requests-empty");
+	var tbody = $("#requests-table tbody");
+	
+    this.update = function (requestList) {
+	    if (requestList && requestList.Requests && requestList.Requests.length) {
+			var requests = requestList.Requests;
+			for (var i=requests.length-1; i>=0; --i) {
+			    var request = requests[i];
+				var row = tableRows[request.Id];
+				if (row) {
+					updateRow(row, request);
+				}
+				else {
+					row = tableRows[request.Id] = createRow(request);
+					tbody.prepend(row);
+				}
+			}
+		}
+		
+		if (tableRows.length > 0) {
+			table.show();
+			emptyMessage.hide();
+		}
+		else {
+			table.hide();
+			emptyMessage.text("There are not requests to display");
+			emptyMessage.show();
+		}
+	}
+	
+	function getRequestValues(request) {
+		return [
+			moment(new Date(request.CreatedOn)).format("DD-MMM-YYYY HH:mm:ss"),
+			request.IsCompleted ? "COMPLETED" : "PENDING",
+			request.Input,
+			request.Output ? request.Output : "",
+			request.RequestedProcessingTimeMs,
+			request.ActualProcessingTimeMs
+		];
+	}
+	
+	function td(text) {
+		var element = $("<td></td>");
+		element.text(text);
+		return element;
+	}
+	
+	function createRow(request) {
+		var tr = $("<tr></tr>");
+		for (var text of getRequestValues(request)) {
+			tr.append(td(text));
+		}
+		setCompletedStyle(tr, request.IsCompleted);
+		
+		return tr;
+	}
+	
+	function updateRow(tr, request) {
+		var values = getRequestValues(request);
+		var tds = tr.children();
+		for (var i=0; i<values.length; ++i) {
+			$(tds[i]).text(values[i]);
+		}
+		setCompletedStyle(tr, request.IsCompleted);
+	}
+	
+	function setCompletedStyle(tr, isCompleted) {
+		if (isCompleted) {
+			tr.addClass("completed");
+			tr.removeClass("pending");
+		} else {
+			tr.removeClass("completed");
+			tr.addClass("pending");
+		}
+	}
+}
+
+function WebClient(serverUrl, requestTable) {
+	var revision = 0;
+	
+	function getRequests() {
+		var url = serverUrl + "api/requests?sinceRevision=" + revision;
+		$.ajax({
+			url: url,
+			datatype: "json",
+			success: function(data) {
+				$("#requests-error").hide();
+				if (!data) {
+					showError("Server returned no data");
+					return;
+				}
+				
+				if (data.Revision == null) {
+					showError("Server returned invalid data");
+					return;
+				}
+				
+				clearError();
+				revision = data.Revision;
+				requestTable.update(data);
+			},
+			error: function(xhr) {
+				var msg = getXhrErrorText(url, xhr);
+				$("#requests-error").text(msg);
+				$("#requests-error").show();
+			}
+		});
+	}
+	
+	function clearError() {
+		$("#requests-error").hide();
+	}
+	
+	function getXhrErrorText(url, xhr) {
+		var msg = "Error connecting to " + url;
+		if (xhr.status) msg += ": " + xhr.status + " " + xhr.statusText;
+		return msg;
+	}
+	
+	function showError(msg) {
+		$("#requests-error").text(msg);
+		$("#requests-error").show();
+	}
+	
+	this.start = function(period) {
+		setInterval(getRequests, period);
+	}
+	
+	this.addRequest = function (input, delay) {
+		var url = serverUrl + "api/requests";
+		$.ajax({
+			url: url,
+			method: "POST",
+			data: { Input: input, RequestedProcessingTimeMs: new Number(delay)},
+			datatype: "json",
+			error: function(xhr) {
+				var msg = getXhrErrorText(url, xhr);
+				alert(msg);
+			}
+		});
+	}
+}
+
+var webClient;
+
+function onNewRequest() {
+	if (!webClient) return;
+	webClient.addRequest($("#request-input").val(), $("#request-delay").val());
+}
+
+$(function() {
+	var input = $(".request-field:first input");
+	input.select();
+    input.focus();
+	webClient = new WebClient("", new RequestTable());
+	webClient.start(500);
+});
+
+</script>
+
+</body>
+</html>
