@@ -1,4 +1,4 @@
-TL;DR File [MyCommunication/WcfWrapper.cs](https://github.com/ikriv/AspNetCallsWinService/blob/remoting/MyCommunication/RemotingWrapper.cs) contains C# code for creating .NET Remoting client and server without configuration.
+TL;DR File [MyCommunication/RemotingWrapper.cs](https://github.com/ikriv/AspNetCallsWinService/blob/remoting/MyCommunication/RemotingWrapper.cs) contains C# code for creating .NET Remoting client and server without configuration.
 
 # How ASP.NET can call Windows Service
 
